@@ -12,7 +12,7 @@ const Navbar = () => {
       <div className="container mx-auto flex justify-between items-center">
         {/* Logo */}
         <div className="text-white text-2xl font-bold">
-          <Link href="/">UrbanDictionary</Link>
+          <Link href="/">Yeh</Link>
         </div>
 
         <div className="relative space-x-4">
