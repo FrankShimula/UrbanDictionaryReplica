@@ -29,33 +29,51 @@ const WordList = () => {
     fetchWords();
   }, []);
 
-  const handleUpvote = async (wordId: string) => {
+  const handleVote = async (wordId: string, action: "upvote" | "downvote") => {
     try {
-      await axios.post(`/api/words/${wordId}/upvote`);
-      // Update the UI after upvoting
-      setWords((prevWords) =>
-        prevWords.map((word) =>
-          word._id === wordId ? { ...word, upvotes: word.upvotes + 1 } : word
-        )
+      // Retrieve vote history from localStorage
+      const voteHistory = JSON.parse(
+        localStorage.getItem("voteHistory") || "{}"
       );
-    } catch (error) {
-      console.error("Error upvoting:", error);
-    }
-  };
 
-  const handleDownvote = async (wordId: string) => {
-    try {
-      await axios.post(`/api/words/${wordId}/downvote`);
-      // Update the UI after downvoting
-      setWords((prevWords) =>
-        prevWords.map((word) =>
-          word._id === wordId
-            ? { ...word, downvotes: word.downvotes + 1 }
-            : word
-        )
-      );
+      // Check if the user has already voted on this word
+      const existingVote = voteHistory[wordId];
+
+      let newAction: "upvote" | "downvote" | "remove" = action;
+
+      // If user clicked the same vote button, remove the vote
+      if (existingVote === action) {
+        newAction = "remove";
+      } else if (existingVote && existingVote !== action) {
+        // If user clicked opposite vote, switch the vote
+        newAction = action;
+      }
+
+      // Send the request to the backend
+      const response = await axios.post(`/api/words/${wordId}`, {
+        action: newAction,
+      });
+
+      if (response.status === 200) {
+        // Update vote history in localStorage
+        if (newAction === "remove") {
+          delete voteHistory[wordId];
+        } else {
+          voteHistory[wordId] = newAction;
+        }
+        localStorage.setItem("voteHistory", JSON.stringify(voteHistory));
+
+        // Update the words state with the new data
+        setWords((prevWords) =>
+          prevWords.map((word) =>
+            word._id === wordId ? response.data.word : word
+          )
+        );
+      } else {
+        alert("Failed to vote");
+      }
     } catch (error) {
-      console.error("Error downvoting:", error);
+      console.error("Error voting:", error);
     }
   };
 
@@ -81,13 +99,13 @@ const WordList = () => {
             </p>
             <div className="flex items-center justify-between mt-4">
               <button
-                onClick={() => handleUpvote(word._id)}
+                onClick={() => handleVote(word._id, "upvote")}
                 className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
               >
                 Upvote ({word.upvotes})
               </button>
               <button
-                onClick={() => handleDownvote(word._id)}
+                onClick={() => handleVote(word._id, "downvote")}
                 className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
               >
                 Downvote ({word.downvotes})

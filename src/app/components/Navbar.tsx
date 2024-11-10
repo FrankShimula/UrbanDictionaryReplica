@@ -40,7 +40,7 @@ const Navbar = () => {
             </div>
           )}
 
-          <Link href="/submit" className="text-white hover:text-gray-200">
+          <Link href="/wordadd" className="text-white hover:text-gray-200">
             Submit a Word
           </Link>
           <Link href="/trending" className="text-white hover:text-gray-200">
