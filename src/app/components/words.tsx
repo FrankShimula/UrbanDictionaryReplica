@@ -36,20 +36,18 @@ const WordList = () => {
         localStorage.getItem("voteHistory") || "{}"
       );
 
-      // Check if the user has already voted on this word
       const existingVote = voteHistory[wordId];
 
+      // Determine new action based on current vote
       let newAction: "upvote" | "downvote" | "remove" = action;
 
-      // If user clicked the same vote button, remove the vote
       if (existingVote === action) {
-        newAction = "remove";
+        newAction = "remove"; // If the same button is clicked again, remove the vote
       } else if (existingVote && existingVote !== action) {
-        // If user clicked opposite vote, switch the vote
-        newAction = action;
+        newAction = action; // Switch vote if different button is clicked
       }
 
-      // Send the request to the backend
+      // Prevent adding more than one upvote/downvote
       const response = await axios.post(`/api/words/${wordId}`, {
         action: newAction,
       });
