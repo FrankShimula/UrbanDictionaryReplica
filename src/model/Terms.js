@@ -29,6 +29,12 @@ const termsSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
+    upvotersId: {
+        type: String,
+    },
+    downvotersId: {
+        type: String,
+    },
 
 }, { timestamps: true })
 

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { ThumbsUp, ThumbsDown } from "lucide-react";
 
 interface Word {
   _id: string;
@@ -10,13 +11,26 @@ interface Word {
   author: string;
   upvotes: number;
   downvotes: number;
+  upvoterIds: string[];
+  downvoterIds: string[];
   createdAt: string;
 }
 
 const WordList = () => {
   const [words, setWords] = useState<Word[]>([]);
+  const [userId, setUserId] = useState<string>("");
+  const [isVoting, setIsVoting] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
+    const storedUserId = localStorage.getItem("userId");
+    if (storedUserId) {
+      setUserId(storedUserId);
+    } else {
+      const newUserId = `user_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem("userId", newUserId);
+      setUserId(newUserId);
+    }
+
     const fetchWords = async () => {
       try {
         const response = await axios.get("/api/words");
@@ -31,47 +45,49 @@ const WordList = () => {
 
   const handleVote = async (wordId: string, action: "upvote" | "downvote") => {
     try {
-      // Retrieve vote history from localStorage
-      const voteHistory = JSON.parse(
-        localStorage.getItem("voteHistory") || "{}"
-      );
+      if (!userId || isVoting[wordId]) return;
 
-      const existingVote = voteHistory[wordId];
+      setIsVoting((prev) => ({ ...prev, [wordId]: true }));
 
-      // Determine new action based on current vote
+      const word = words.find((w) => w._id === wordId);
+      if (!word) return;
+
+      const hasUpvoted = word.upvoterIds.includes(userId);
+      const hasDownvoted = word.downvoterIds.includes(userId);
+
       let newAction: "upvote" | "downvote" | "remove" = action;
 
-      if (existingVote === action) {
-        newAction = "remove"; // If the same button is clicked again, remove the vote
-      } else if (existingVote && existingVote !== action) {
-        newAction = action; // Switch vote if different button is clicked
+      // Logic for handling the vote
+      if (action === "upvote") {
+        if (hasUpvoted) {
+          newAction = "remove"; // Remove upvote
+        } else if (hasDownvoted) {
+          newAction = "upvote"; // Switch from downvote to upvote
+        }
+      } else if (action === "downvote") {
+        if (hasDownvoted) {
+          newAction = "remove"; // Remove downvote
+        } else if (hasUpvoted) {
+          newAction = "downvote"; // Switch from upvote to downvote
+        }
       }
 
-      // Prevent adding more than one upvote/downvote
       const response = await axios.post(`/api/words/${wordId}`, {
         action: newAction,
+        userId,
       });
 
       if (response.status === 200) {
-        // Update vote history in localStorage
-        if (newAction === "remove") {
-          delete voteHistory[wordId];
-        } else {
-          voteHistory[wordId] = newAction;
-        }
-        localStorage.setItem("voteHistory", JSON.stringify(voteHistory));
-
-        // Update the words state with the new data
         setWords((prevWords) =>
           prevWords.map((word) =>
             word._id === wordId ? response.data.word : word
           )
         );
-      } else {
-        alert("Failed to vote");
       }
     } catch (error) {
       console.error("Error voting:", error);
+    } finally {
+      setIsVoting((prev) => ({ ...prev, [wordId]: false }));
     }
   };
 
@@ -79,38 +95,59 @@ const WordList = () => {
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Recents</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {words.map((word) => (
-          <div key={word._id} className="bg-white shadow-md rounded-lg p-4">
-            <h2 className="text-xl font-bold">{word.word}</h2>
-            <p className="text-gray-700">
-              <strong>Definition:</strong> {word.definition}
-            </p>
-            <p className="text-gray-700">
-              <strong>Example:</strong> {word.example}
-            </p>
-            <p className="text-gray-700">
-              <strong>Author:</strong> {word.author}
-            </p>
-            <p className="text-gray-500">
-              <strong>Submitted on:</strong>{" "}
-              {new Date(word.createdAt).toLocaleDateString()}
-            </p>
-            <div className="flex items-center justify-between mt-4">
-              <button
-                onClick={() => handleVote(word._id, "upvote")}
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-              >
-                Upvote ({word.upvotes})
-              </button>
-              <button
-                onClick={() => handleVote(word._id, "downvote")}
-                className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-              >
-                Downvote ({word.downvotes})
-              </button>
+        {words.map((word) => {
+          const hasUpvoted = (word.upvoterIds || []).includes(userId);
+          const hasDownvoted = (word.downvoterIds || []).includes(userId);
+
+          return (
+            <div key={word._id} className="bg-white shadow-md rounded-lg p-4">
+              <h2 className="text-xl font-bold mb-4">{word.word}</h2>
+              <p className="text-gray-700 mb-2">
+                <strong>Definition:</strong> {word.definition}
+              </p>
+              <p className="text-gray-700 mb-2">
+                <strong>Example:</strong> {word.example}
+              </p>
+              <p className="text-gray-700 mb-2">
+                <strong>Author:</strong> {word.author}
+              </p>
+              <p className="text-gray-500 mb-4">
+                <strong>Submitted on:</strong>{" "}
+                {new Date(word.createdAt).toLocaleDateString()}
+              </p>
+
+              <div className="flex items-center justify-between mt-4 gap-4">
+                {/* Upvote Button */}
+                <button
+                  onClick={() => handleVote(word._id, "upvote")}
+                  disabled={isVoting[word._id]}
+                  className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
+                    hasUpvoted
+                      ? "bg-green-600 text-white"
+                      : "bg-gray-100 hover:bg-green-100 text-gray-700"
+                  }`}
+                >
+                  <ThumbsUp className="w-4 h-4" />
+                  <span>{word.upvotes}</span>
+                </button>
+
+                {/* Downvote Button */}
+                <button
+                  onClick={() => handleVote(word._id, "downvote")}
+                  disabled={isVoting[word._id]}
+                  className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
+                    hasDownvoted
+                      ? "bg-red-600 text-white"
+                      : "bg-gray-100 hover:bg-red-100 text-gray-700"
+                  }`}
+                >
+                  <ThumbsDown className="w-4 h-4" />
+                  <span>{word.downvotes}</span>
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

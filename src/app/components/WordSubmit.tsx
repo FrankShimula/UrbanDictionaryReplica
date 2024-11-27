@@ -33,7 +33,6 @@ const WordSubmit = () => {
       );
 
       if (response.status === 200) {
-        alert("Word added successfully");
         setWord(""); // Clear the input fields
         setDefinition("");
         setExample("");
