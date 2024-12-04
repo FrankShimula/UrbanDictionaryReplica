@@ -40,7 +40,7 @@ const BrowseByLetter = () => {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">
-        Words Starting with "{letter}"
+        Words Starting with '{letter}'
       </h1>
       {words.length === 0 ? (
         <p>No words found.</p>

@@ -1,11 +1,11 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 
 const Logout = () => {
   const router = useRouter();
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     // Remove the token from localStorage
     localStorage.removeItem("token");
 
@@ -14,11 +14,11 @@ const Logout = () => {
 
     // Redirect the user to the login page
     router.push("/Login");
-  };
+  }, [router]); // Include `router` as dependency to ensure the latest version is used
 
   useEffect(() => {
     handleLogout();
-  }, []); // Empty dependency array ensures this runs only on mount
+  }, [handleLogout]); // This ensures `handleLogout` will only be called once
 
   return (
     <div className="flex justify-center items-center min-h-screen">
