@@ -19,6 +19,7 @@
   "plugins": ["react"],
   "rules": {
     "jsx-quotes": ["error", "prefer-double"],
+    "react/no-unescaped-entities": 0,
     "react/react-in-jsx-scope": "off"
   }
 }

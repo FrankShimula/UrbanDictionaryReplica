@@ -1,6 +1,5 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
 
@@ -37,7 +36,9 @@ const SearchPage = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Search Results for '{query}'</h1>
+      <h1 className="text-2xl font-bold mb-4">
+        Search Results for "<span>{query}</span>"
+      </h1>
       {isLoading ? (
         <p>Loading...</p>
       ) : searchResults.length > 0 ? (
@@ -56,4 +57,12 @@ const SearchPage = () => {
   );
 };
 
-export default SearchPage;
+const SearchPageWithSuspense = () => {
+  return (
+    <Suspense fallback={<p>Loading search page...</p>}>
+      <SearchPage />
+    </Suspense>
+  );
+};
+
+export default SearchPageWithSuspense;

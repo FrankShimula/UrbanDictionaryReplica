@@ -25,7 +25,7 @@ const Card = ({
 
       {example && (
         <blockquote className="mt-2 text-gray-500 italic border-l-4 border-blue-500 pl-4">
-          "{example}"
+          "<span>{example}</span>"
         </blockquote>
       )}
 
