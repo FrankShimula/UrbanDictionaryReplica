@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/utils/mongodb";
-import Word from "@/model/Terms";
+import Terms from "@/model/Terms";
 
 export async function GET(req) {
     await dbConnect();
@@ -13,7 +13,7 @@ export async function GET(req) {
     }
 
     try {
-        const words = await Word.find({
+        const words = await Terms.find({
             word: { $regex: query, $options: "i" }, // Case-insensitive partial match
         }).limit(20);
 
