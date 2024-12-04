@@ -1,4 +1,4 @@
-import Words from "../components/words";
+import Words from "./components/words";
 
 const page = () => {
   return <Words />;
