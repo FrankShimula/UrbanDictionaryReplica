@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/utils/mongodb";
 import Word from "@/model/Terms";
 
-export async function GET(req: Request, { params }: { params: { letter: string } }) {
+export async function GET(req, { params }) {
   const { letter } = params;
 
   await dbConnect();
