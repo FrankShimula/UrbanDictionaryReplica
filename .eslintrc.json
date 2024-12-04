@@ -1,3 +1,8 @@
 {
-  "extends": "next/core-web-vitals"
+  "extends": "next/core-web-vitals",
+  "jsx-quotes": ["error", "prefer-double"],
+  "react/jsx-curly-brace-presence": [
+    "error",
+    { "props": "ignore", "children": "ignore" }
+  ]
 }

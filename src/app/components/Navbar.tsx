@@ -64,7 +64,7 @@ const Navbar = () => {
               Submit a Word
             </button>
             <button
-              onClick={() => router.push("/trending")}
+              onClick={() => router.push("/Trending")}
               className="text-white hover:text-gray-200"
             >
               Trending
