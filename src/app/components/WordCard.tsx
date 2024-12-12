@@ -26,6 +26,11 @@ const WordCard: React.FC<WordCardProps> = ({
   guestId,
   isVoting,
 }) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _wordId = word._id;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _action: "upvote" | "downvote" = "upvote";
+
   const hasUpvoted = word.upvoterIds?.includes(guestId || "") || false;
   const hasDownvoted = word.downvoterIds?.includes(guestId || "") || false;
 
