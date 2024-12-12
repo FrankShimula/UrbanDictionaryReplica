@@ -1,4 +1,3 @@
-// components/WordCard.tsx
 import React from "react";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
 

@@ -24,7 +24,6 @@ const WordList = () => {
   const [words, setWords] = useState<Word[]>([]);
   const [guestId, setGuestId] = useState<string>("");
   const [isVoting, setIsVoting] = useState<{ [key: string]: boolean }>({});
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const generateGuestId = () => {
