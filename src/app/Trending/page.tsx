@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
 import axios, { AxiosError } from "axios";
 
@@ -24,18 +25,12 @@ const WordList = () => {
   const [words, setWords] = useState<Word[]>([]);
   const [guestId, setGuestId] = useState<string>("");
   const [isVoting, setIsVoting] = useState<{ [key: string]: boolean }>({});
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Generate or retrieve persistent guest ID
-    const generateGuestId = () => {
-      const timestamp = new Date().getTime();
-      const random = Math.random().toString(36).substring(2, 15);
-      return `guest_${timestamp}_${random}`;
-    };
-
-    const storedGuestId = localStorage.getItem("guestId");
-    if (storedGuestId) {
-      setGuestId(storedGuestId);
+    const storedUserId = localStorage.getItem("userId");
+    if (storedUserId) {
+      setUserId(storedUserId);
     } else {
       const newGuestId = generateGuestId();
       localStorage.setItem("guestId", newGuestId);
@@ -60,6 +55,29 @@ const WordList = () => {
     try {
       setIsVoting((prev) => ({ ...prev, [wordId]: true }));
 
+      const word = words.find((w) => w._id === wordId);
+      if (!word) return;
+
+      const hasUpvoted = word.upvoterIds.includes(userId);
+      const hasDownvoted = word.downvoterIds.includes(userId);
+
+      let newAction: "upvote" | "downvote" | "remove" = action;
+
+      // Logic for handling the vote
+      if (action === "upvote") {
+        if (hasUpvoted) {
+          newAction = "remove"; // Remove upvote
+        } else if (hasDownvoted) {
+          newAction = "upvote"; // Switch from downvote to upvote
+        }
+      } else if (action === "downvote") {
+        if (hasDownvoted) {
+          newAction = "remove"; // Remove downvote
+        } else if (hasUpvoted) {
+          newAction = "downvote"; // Switch from upvote to downvote
+        }
+      }
+
       const response = await axios.post(`/api/words/${wordId}`, {
         action,
         guestId,
@@ -83,18 +101,13 @@ const WordList = () => {
     }
   };
 
-  const getVoteStatus = (word: Word) => {
-    const hasUpvoted = word.upvoterIds?.includes(guestId) || false;
-    const hasDownvoted = word.downvoterIds?.includes(guestId) || false;
-    return { hasUpvoted, hasDownvoted };
-  };
-
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Word List</h1>
+      <h1 className="text-2xl font-bold mb-4">Recents</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {words.map((word) => {
-          const { hasUpvoted, hasDownvoted } = getVoteStatus(word);
+          const hasUpvoted = (word.upvoterIds || []).includes(userId);
+          const hasDownvoted = (word.downvoterIds || []).includes(userId);
 
           return (
             <div key={word._id} className="bg-white shadow-md rounded-lg p-4">
@@ -108,33 +121,38 @@ const WordList = () => {
               <p className="text-gray-700 mb-2">
                 <strong>Author:</strong> {word.author}
               </p>
-              <div className="flex items-center gap-4 mt-4">
+              <p className="text-gray-500 mb-4">
+                <strong>Submitted on:</strong>{" "}
+                {new Date(word.createdAt).toLocaleDateString()}
+              </p>
+
+              <div className="flex items-center justify-between mt-4 gap-4">
+                {/* Upvote Button */}
                 <button
                   onClick={() => handleVote(word._id, "upvote")}
                   disabled={isVoting[word._id]}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
                     hasUpvoted
                       ? "bg-green-600 text-white"
-                      : "bg-gray-100 hover:bg-green-100"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  aria-label="Upvote"
+                      : "bg-gray-100 hover:bg-green-100 text-gray-700"
+                  }`}
                 >
                   <ThumbsUp className="w-4 h-4" />
-                  <span>{word.upvotes || 0}</span>
+                  <span>{word.upvotes}</span>
                 </button>
 
+                {/* Downvote Button */}
                 <button
                   onClick={() => handleVote(word._id, "downvote")}
                   disabled={isVoting[word._id]}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
                     hasDownvoted
                       ? "bg-red-600 text-white"
-                      : "bg-gray-100 hover:bg-red-100"
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  aria-label="Downvote"
+                      : "bg-gray-100 hover:bg-red-100 text-gray-700"
+                  }`}
                 >
                   <ThumbsDown className="w-4 h-4" />
-                  <span>{word.downvotes || 0}</span>
+                  <span>{word.downvotes}</span>
                 </button>
               </div>
             </div>

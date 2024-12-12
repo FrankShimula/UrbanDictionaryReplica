@@ -11,9 +11,8 @@ const WordSubmit = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token"); // Get the token from local storage
+      const token = localStorage.getItem("token");
 
-      // Make sure token exists
       if (!token) {
         alert("You must be logged in to submit a word.");
         return;
@@ -28,15 +27,16 @@ const WordSubmit = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Include the token in the Authorization header
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
       if (response.status === 200) {
-        setWord(""); // Clear the input fields
+        setWord("");
         setDefinition("");
         setExample("");
+        alert("Word successfully added!");
       } else {
         alert("Failed to add word");
       }
@@ -47,43 +47,62 @@ const WordSubmit = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded shadow-md w-full max-w-md"
-      >
-        <h2 className="text-2xl font-bold mb-6 text-center">Submit a Word</h2>
-        <input
-          type="text"
-          placeholder="Word"
-          value={word}
-          onChange={(e) => setWord(e.target.value)}
-          required
-          className="w-full px-3 py-2 mb-4 border border-gray-300 rounded"
-        />
-        <input
-          type="text"
-          placeholder="Definition"
-          value={definition}
-          onChange={(e) => setDefinition(e.target.value)}
-          required
-          className="w-full px-3 py-2 mb-4 border border-gray-300 rounded"
-        />
-        <input
-          type="text"
-          placeholder="Example"
-          value={example}
-          onChange={(e) => setExample(e.target.value)}
-          required
-          className="w-full px-3 py-2 mb-6 border border-gray-300 rounded"
-        />
-        <button
-          type="submit"
-          className="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Submit
-        </button>
-      </form>
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
+      <div className="w-full max-w-md bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl shadow-2xl p-8">
+        <h2 className="text-3xl font-bold text-white text-center mb-6">
+          Submit a Word
+        </h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="word" className="block text-gray-300 mb-2">
+              Word
+            </label>
+            <input
+              id="word"
+              type="text"
+              placeholder="Enter the word"
+              value={word}
+              onChange={(e) => setWord(e.target.value)}
+              required
+              className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
+            />
+          </div>
+          <div>
+            <label htmlFor="definition" className="block text-gray-300 mb-2">
+              Definition
+            </label>
+            <textarea
+              id="definition"
+              placeholder="Provide a clear definition"
+              value={definition}
+              onChange={(e) => setDefinition(e.target.value)}
+              required
+              rows={3}
+              className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 resize-none"
+            />
+          </div>
+          <div>
+            <label htmlFor="example" className="block text-gray-300 mb-2">
+              Example
+            </label>
+            <textarea
+              id="example"
+              placeholder="Provide an example of the word's usage"
+              value={example}
+              onChange={(e) => setExample(e.target.value)}
+              required
+              rows={3}
+              className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 resize-none"
+            />
+          </div>
+          <button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          >
+            Submit Word
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

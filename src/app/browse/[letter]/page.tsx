@@ -3,11 +3,13 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import WordCard from "../../components/WordCard"; // Import the WordCard component
 
 interface Word {
   _id: string;
   word: string;
   definition: string;
+  example: string;
 }
 
 const BrowseByLetter = () => {
@@ -38,21 +40,18 @@ const BrowseByLetter = () => {
   if (loading) return <p>Loading...</p>;
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">
-        Words Starting with "<span>{letter}</span>"
-      </h1>
-      {words.length === 0 ? (
-        <p>No words found.</p>
-      ) : (
-        <ul>
-          {words.map((word) => (
-            <li key={word._id}>
-              <strong>{word.word}:</strong> {word.definition}
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+      <div className="container mx-auto px-4 py-8">
+        {words.length === 0 ? (
+          <p className="text-white">No words found.</p>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2">
+            {words.map((word) => (
+              <WordCard key={word._id} word={word} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
