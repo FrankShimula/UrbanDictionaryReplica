@@ -2,6 +2,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
+import WordCard from "../components/WordCard"; // Import the reusable card component
 
 interface Word {
   _id: string;
@@ -35,24 +36,23 @@ const SearchPage = () => {
   }, [query]);
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">
-        Search Results for "<span>{query}</span>"
-      </h1>
-      {isLoading ? (
-        <p>Loading...</p>
-      ) : searchResults.length > 0 ? (
-        <ul>
-          {searchResults.map((word) => (
-            <li key={word._id}>
-              <strong>{word.word}</strong>: {word.definition}
-              <p>{word.example}</p>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No results found.</p>
-      )}
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold mb-4 text-white">
+          Search Results for "<span>{query}</span>"
+        </h1>
+        {isLoading ? (
+          <p className="text-white">Loading...</p>
+        ) : searchResults.length > 0 ? (
+          <div className="grid gap-6 md:grid-cols-2">
+            {searchResults.map((word) => (
+              <WordCard key={word._id} word={word} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-white">No results found.</p>
+        )}
+      </div>
     </div>
   );
 };
