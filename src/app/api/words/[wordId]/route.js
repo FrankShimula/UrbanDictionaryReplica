@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/utils/mongodb";
-import Word from "@/model/Terms";
+import Terms from "@/model/Terms";
 
 export async function POST(req, { params }) {
   await dbConnect();
-  const { wordId } = await params;
+  const { wordId } = params;
   const { action, guestId } = await req.json();
 
   if (!guestId) {
@@ -15,64 +15,64 @@ export async function POST(req, { params }) {
   }
 
   try {
-    const word = await Word.findById(wordId);
-    if (!word) {
-      return NextResponse.json({ message: "Word not found" }, { status: 404 });
+    // Find the term first
+    const term = await Terms.findById(wordId);
+    if (!term) {
+      return NextResponse.json({ message: "Term not found" }, { status: 404 });
     }
 
     // Initialize arrays if they don't exist
-    word.upvoterIds = word.upvoterIds || [];
-    word.downvoterIds = word.downvoterIds || [];
+    if (!Array.isArray(term.upvoterIds)) term.upvoterIds = [];
+    if (!Array.isArray(term.downvoterIds)) term.downvoterIds = [];
 
-    const hasUpvoted = word.upvoterIds.includes(guestId);
-    const hasDownvoted = word.downvoterIds.includes(guestId);
+    // Check current vote status
+    const hasUpvoted = term.upvoterIds.includes(guestId);
+    const hasDownvoted = term.downvoterIds.includes(guestId);
 
-    // Reddit-style voting logic
+    // Handle upvote action
     if (action === "upvote") {
       if (hasUpvoted) {
         // If already upvoted, remove the upvote (toggle off)
-        word.upvoterIds = word.upvoterIds.filter(id => id !== guestId);
+        term.upvoterIds = term.upvoterIds.filter(id => id !== guestId);
       } else {
-        // If not upvoted:
-        // 1. If downvoted, remove the downvote first
+        // If was downvoted, remove the downvote first
         if (hasDownvoted) {
-          word.downvoterIds = word.downvoterIds.filter(id => id !== guestId);
+          term.downvoterIds = term.downvoterIds.filter(id => id !== guestId);
         }
-        // 2. Add the upvote
-        word.upvoterIds.push(guestId);
+        // Add the upvote
+        term.upvoterIds.push(guestId);
       }
-    } else if (action === "downvote") {
+    }
+    // Handle downvote action
+    else if (action === "downvote") {
       if (hasDownvoted) {
         // If already downvoted, remove the downvote (toggle off)
-        word.downvoterIds = word.downvoterIds.filter(id => id !== guestId);
+        term.downvoterIds = term.downvoterIds.filter(id => id !== guestId);
       } else {
-        // If not downvoted:
-        // 1. If upvoted, remove the upvote first
+        // If was upvoted, remove the upvote first
         if (hasUpvoted) {
-          word.upvoterIds = word.upvoterIds.filter(id => id !== guestId);
+          term.upvoterIds = term.upvoterIds.filter(id => id !== guestId);
         }
-        // 2. Add the downvote
-        word.downvoterIds.push(guestId);
+        // Add the downvote
+        term.downvoterIds.push(guestId);
       }
-    } else {
-      return NextResponse.json({ message: "Invalid action" }, { status: 400 });
     }
 
-    // Calculate final vote counts from the voter arrays
-    word.upvotes = word.upvoterIds.length;
-    word.downvotes = word.downvoterIds.length;
+    // Save changes
+    await term.save();
 
-    await word.save();
+    // Fetch fresh data to ensure we have the latest state
+    const updatedTerm = await Terms.findById(wordId);
 
     return NextResponse.json({
       message: "Vote updated successfully",
       word: {
-        ...word.toObject(),
-        _id: word._id,
-        upvotes: word.upvotes,
-        downvotes: word.downvotes,
-        upvoterIds: word.upvoterIds,
-        downvoterIds: word.downvoterIds
+        ...updatedTerm.toObject(),
+        _id: updatedTerm._id,
+        upvotes: updatedTerm.upvotes,
+        downvotes: updatedTerm.downvotes,
+        upvoterIds: updatedTerm.upvoterIds,
+        downvoterIds: updatedTerm.downvoterIds
       }
     });
 
