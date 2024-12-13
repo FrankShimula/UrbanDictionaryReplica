@@ -15,19 +15,27 @@ interface Word {
 
 interface WordCardProps {
   word: Word;
-  handleVote?: (wordId: string, action: "upvote" | "downvote") => void;
+  handleVote: (wordId: string, action: "upvote" | "downvote") => void;
   guestId?: string;
   isVoting?: { [key: string]: boolean };
 }
 
 const WordCard: React.FC<WordCardProps> = ({
   word,
-  handleVote = () => {}, // Provide a no-op default function
+  handleVote,
   guestId,
   isVoting = {}, // Provide a default empty object
 }) => {
   const hasUpvoted = word.upvoterIds?.includes(guestId || "") || false;
   const hasDownvoted = word.downvoterIds?.includes(guestId || "") || false;
+
+  const onUpvote = () => {
+    handleVote(word._id, "upvote");
+  };
+
+  const onDownvote = () => {
+    handleVote(word._id, "downvote");
+  };
 
   return (
     <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-gray-600/50">
@@ -56,36 +64,34 @@ const WordCard: React.FC<WordCardProps> = ({
             </div>
           )}
         </div>
-        {handleVote !== null && (
-          <div className="mt-6 pt-4 border-t border-gray-700/50">
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={() => handleVote(word._id, "upvote")}
-                disabled={isVoting[word._id]}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg transition-all ${
-                  hasUpvoted
-                    ? "bg-green-600 text-white"
-                    : "bg-gray-700/50 hover:bg-green-600/20 text-gray-200"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                <ThumbsUp className="w-4 h-4" />
-                <span>{word.upvotes || 0}</span>
-              </button>
-              <button
-                onClick={() => handleVote(word._id, "downvote")}
-                disabled={isVoting[word._id]}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-lg transition-all ${
-                  hasDownvoted
-                    ? "bg-red-600 text-white"
-                    : "bg-gray-700/50 hover:bg-red-600/20 text-gray-200"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                <ThumbsDown className="w-4 h-4" />
-                <span>{word.downvotes || 0}</span>
-              </button>
-            </div>
+        <div className="mt-6 pt-4 border-t border-gray-700/50">
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={onUpvote}
+              disabled={isVoting[word._id]}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg transition-all ${
+                hasUpvoted
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-700/50 hover:bg-green-600/20 text-gray-200"
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              <ThumbsUp className="w-4 h-4" />
+              <span>{word.upvotes || 0}</span>
+            </button>
+            <button
+              onClick={onDownvote}
+              disabled={isVoting[word._id]}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg transition-all ${
+                hasDownvoted
+                  ? "bg-red-600 text-white"
+                  : "bg-gray-700/50 hover:bg-red-600/20 text-gray-200"
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              <ThumbsDown className="w-4 h-4" />
+              <span>{word.downvotes || 0}</span>
+            </button>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
