@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense, useCallback } from "react";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import axios, { AxiosError } from "axios";
@@ -21,12 +21,24 @@ interface ErrorResponse {
   message: string;
 }
 
-const SearchPage = () => {
+// Separate the search results component
+const SearchResults = () => {
   const searchParams = useSearchParams();
   const query = searchParams.get("query") || "";
   const [searchResults, setSearchResults] = useState<Word[]>([]);
   const [guestId, setGuestId] = useState<string>("");
   const [isVoting, setIsVoting] = useState<{ [key: string]: boolean }>({});
+
+  const fetchSearchResults = useCallback(async () => {
+    if (!query) return;
+
+    try {
+      const response = await axios.get(`/api/search?query=${query}`);
+      setSearchResults(response.data.words);
+    } catch (error) {
+      console.error("Error fetching search results:", error);
+    }
+  }, [query]);
 
   useEffect(() => {
     const generateGuestId = () => {
@@ -45,18 +57,7 @@ const SearchPage = () => {
     }
 
     fetchSearchResults();
-  }, [query]);
-
-  const fetchSearchResults = async () => {
-    if (!query) return;
-
-    try {
-      const response = await axios.get(`/api/search?query=${query}`);
-      setSearchResults(response.data.words);
-    } catch (error) {
-      console.error("Error fetching search results:", error);
-    }
-  };
+  }, [fetchSearchResults]);
 
   const handleVote = async (wordId: string, action: "upvote" | "downvote") => {
     if (!guestId || isVoting[wordId]) return;
@@ -175,6 +176,36 @@ const SearchPage = () => {
         <p>No results found.</p>
       )}
     </div>
+  );
+};
+
+// Loading component remains the same
+const SearchLoading = () => (
+  <div className="container mx-auto p-4 min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
+    <div className="animate-pulse">
+      <div className="h-8 w-64 bg-gray-700 rounded mb-4"></div>
+      <div className="grid gap-6 md:grid-cols-2">
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700/50"
+          >
+            <div className="h-8 w-48 bg-gray-700 rounded mb-4"></div>
+            <div className="h-20 bg-gray-700 rounded mb-4"></div>
+            <div className="h-16 bg-gray-700 rounded"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+// Main page component
+const SearchPage = () => {
+  return (
+    <Suspense fallback={<SearchLoading />}>
+      <SearchResults />
+    </Suspense>
   );
 };
 
