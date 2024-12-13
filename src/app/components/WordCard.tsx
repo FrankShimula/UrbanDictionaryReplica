@@ -22,15 +22,10 @@ interface WordCardProps {
 
 const WordCard: React.FC<WordCardProps> = ({
   word,
-  handleVote,
+  handleVote = () => {}, // Provide a no-op default function
   guestId,
-  isVoting,
+  isVoting = {}, // Provide a default empty object
 }) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _wordId = word._id;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _action: "upvote" | "downvote" = "upvote";
-
   const hasUpvoted = word.upvoterIds?.includes(guestId || "") || false;
   const hasDownvoted = word.downvoterIds?.includes(guestId || "") || false;
 
@@ -61,12 +56,12 @@ const WordCard: React.FC<WordCardProps> = ({
             </div>
           )}
         </div>
-        {handleVote && (
+        {handleVote !== null && (
           <div className="mt-6 pt-4 border-t border-gray-700/50">
             <div className="flex justify-center gap-4">
               <button
                 onClick={() => handleVote(word._id, "upvote")}
-                disabled={isVoting?.[word._id]}
+                disabled={isVoting[word._id]}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-lg transition-all ${
                   hasUpvoted
                     ? "bg-green-600 text-white"
@@ -78,7 +73,7 @@ const WordCard: React.FC<WordCardProps> = ({
               </button>
               <button
                 onClick={() => handleVote(word._id, "downvote")}
-                disabled={isVoting?.[word._id]}
+                disabled={isVoting[word._id]}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-lg transition-all ${
                   hasDownvoted
                     ? "bg-red-600 text-white"
